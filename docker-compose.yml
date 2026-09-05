@@ -1,0 +1,18 @@
+services:
+  vitoo:
+    build:
+      context: .
+      args:
+        VITE_API_URL: /api
+    image: vitoo:latest
+    container_name: vitoo
+    restart: unless-stopped
+    ports:
+      - "80:4000"
+    env_file:
+      - .env.production
+    volumes:
+      - vitoo-data:/data
+
+volumes:
+  vitoo-data:

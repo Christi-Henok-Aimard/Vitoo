@@ -1,0 +1,293 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  firstName     String
+  lastName      String
+  phone         String    @unique
+  email         String?   @unique
+  city          String?
+  role          Role      @default(passenger)
+  provider      Provider  @default(password)
+  passwordHash  String?
+  googleId      String?   @unique
+  avatarUrl     String?
+  companyName   String?
+  rccm          String?
+  taxId         String?
+  companyLogo   String?
+  primaryColor  String?
+  secondaryColor String?
+  paymentMethods String   @default("[]")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  bookings      Booking[]
+  tickets       Ticket[]      @relation("TicketSeller")
+  incidents     Incident[]
+  ratings       Rating[]
+  ownedTrips    Trip[]        @relation("TripOwner")
+  driver        Driver?
+  companyDrivers Driver[]    @relation("CompanyDrivers")
+  companyTrips  Trip[]        @relation("TripCompany")
+  companyTickets Ticket[]     @relation("TicketCompany")
+  driverMessages Message[]    @relation("CompanyMessages")
+
+  @@map("users")
+}
+
+model Driver {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  licenseNumber String?
+  status        DriverStatus @default(available)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company       User          @relation("CompanyDrivers", fields: [companyId], references: [id], onDelete: Cascade)
+  companyId     String
+  trips         Trip[]
+  incidents     Incident[]
+  ratings       Rating[]
+  validatedTickets Ticket[]   @relation("ValidatedBy")
+  messages      Message[]     @relation("DriverMessages")
+
+  @@map("drivers")
+}
+
+model Vehicle {
+  id            String    @id @default(cuid())
+  companyId     String
+  plateNumber   String
+  brand         String?
+  model         String?
+  capacity      Int?
+  color         String?
+  photo         String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  trips         Trip[]
+
+  @@map("vehicles")
+}
+
+model Trip {
+  id              String      @id @default(cuid())
+  companyId       String
+  driverId        String?
+  vehicleId       String?
+  depart          String
+  arrivee         String
+  station         String?
+  date            DateTime
+  time            String
+  duration        String?
+  price           Int
+  availableSeats  Int
+  paymentMethods  String    @default("[]")
+  stops           String    @default("[]")
+  status          TripStatus  @default(scheduled)
+  latitude        Float?
+  longitude       Float?
+  lastPositionAt  DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  owner           User        @relation("TripOwner", fields: [companyId], references: [id], onDelete: Cascade)
+  company         User        @relation("TripCompany", fields: [companyId], references: [id], onDelete: Cascade)
+  driver          Driver?     @relation(fields: [driverId], references: [id])
+  vehicle         Vehicle?    @relation(fields: [vehicleId], references: [id])
+  bookings        Booking[]
+  tickets         Ticket[]
+  incidents       Incident[]
+  ratings         Rating[]
+
+  @@map("trips")
+}
+
+model Booking {
+  id          String    @id @default(cuid())
+  userId      String
+  tripId      String
+  passengerName String
+  passengerPhone String
+  passengerEmail String?
+  seats       Int       @default(1)
+  seatNumber  String?
+  amount      Int?
+  paymentMethod String
+  status      BookingStatus @default(confirmed)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trip        Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  ticket      Ticket?
+
+  @@unique([userId, tripId])
+  @@map("bookings")
+}
+
+model Ticket {
+  id              String        @id @default(cuid())
+  bookingId       String?       @unique
+  tripId          String
+  companyId       String
+  soldBy          TicketSeller
+  validatedBy     String?
+  validatedAt     DateTime?
+  status          TicketStatus  @default(active)
+  code            String        @unique
+  qrData          String?
+  seatNumber      String?
+  passengerName   String?
+  passengerPhone  String?
+  paymentMethod   String?
+  amount          Int?
+  commissionRate  Float?        @default(0.08)
+  commissionAmount Int?
+  companyNet      Int?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  trip            Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  company         User            @relation("TicketCompany", fields: [companyId], references: [id], onDelete: Cascade)
+  seller          User            @relation("TicketSeller", fields: [companyId], references: [id])
+  validatedByDriver Driver?      @relation("ValidatedBy", fields: [validatedBy], references: [id])
+  booking         Booking?        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("tickets")
+}
+
+model Incident {
+  id          String    @id @default(cuid())
+  tripId      String
+  driverId    String
+  companyId   String
+  type        IncidentType
+  description String?
+  resolved    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  trip        Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  driver      Driver    @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  company     User      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("incidents")
+}
+
+model Rating {
+  id          String    @id @default(cuid())
+  tripId      String
+  driverId    String
+  userId      String
+  stars       Int
+  comment     String?
+  createdAt   DateTime  @default(now())
+
+  trip        Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  driver      Driver    @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tripId])
+  @@map("ratings")
+}
+
+model Message {
+  id        String        @id @default(cuid())
+  tripId    String?
+  driverId  String
+  companyId String
+  sender    MessageSender
+  body      String
+  read      Boolean       @default(false)
+  createdAt DateTime      @default(now())
+
+  driver  Driver @relation("DriverMessages", fields: [driverId], references: [id], onDelete: Cascade)
+  company User   @relation("CompanyMessages", fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model AdminAuditLog {
+  id          String    @id @default(cuid())
+  adminId     String
+  action      String
+  targetType  String
+  targetId    String?
+  details     String?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+
+  @@map("admin_audit_logs")
+}
+
+enum Role {
+  passenger
+  company
+  driver
+  admin
+}
+
+enum Provider {
+  password
+  google
+}
+
+enum DriverStatus {
+  available
+  on_trip
+  off_duty
+}
+
+enum TripStatus {
+  scheduled
+  boarding
+  in_transit
+  completed
+  cancelled
+}
+
+enum BookingStatus {
+  confirmed
+  cancelled
+  completed
+}
+
+enum TicketStatus {
+  active
+  used
+  expired
+  cancelled
+}
+
+enum TicketSeller {
+  online
+  counter
+}
+
+enum IncidentType {
+  mechanical
+  delay
+  road
+  passenger
+  other
+}
+
+enum MessageSender {
+  driver
+  company
+}

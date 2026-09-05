@@ -1,0 +1,26 @@
+# Git / divers
+.git
+.gitignore
+.vscode
+
+# Dépendances et builds
+**/node_modules
+**/dist
+backend/dist
+
+# Secrets et logs ne doivent pas entrer dans l'image
+**/.env
+**/.env.*
+**/*.log
+backend/*.log
+backend/dbg.cjs
+backend/sdm.cjs
+backend/*.cjs
+backend/testmsg3.mts
+backend/trips.json
+
+# Outils locaux de dev
+backend/.agents
+backend/.claude
+backend/.cursor
+backend/.devin
