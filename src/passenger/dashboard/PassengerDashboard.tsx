@@ -12,6 +12,7 @@ import { AppSettings } from '../settings/AppSettings';
 import { useTrips } from '../../hooks/useTrips';
 import { useBooking } from '../../hooks/useBooking';
 import { fetchMyBookingsApi, completeBookingApi, rateTripApi } from '../../api/bookingApi';
+import { initiatePaymentApi, loadLastBooking, clearLastBooking } from '../../api/paymentApi';
 import { fetchCompaniesApi } from '../../api/tripApi';
 import { getMyMessagesApi, type CompanyMessage } from '../../api/authApi';
 import type { Trip } from '../../types/trip';
@@ -48,7 +49,8 @@ export const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ currentU
 
   const t = useTranslation();
   const { trips, loading, searchTrips } = useTrips();
-  const { booking, confirmBooking, loading: isBookingLoading, resetBooking } = useBooking();
+  const { booking, confirmBooking, loading: isBookingLoading, resetBooking, restoreBooking } = useBooking();
+  const [isOnlinePayment, setIsOnlinePayment] = useState(false);
 
   // Charge les réservations réelles du passager depuis le serveur
   useEffect(() => {
@@ -59,6 +61,16 @@ export const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ currentU
     }).catch(() => undefined);
     void fetchCompaniesApi().then(setCompanies).catch(() => setCompanies([]));
   }, [currentUser?.id]);
+
+  // Après un retour de paiement en ligne : restaure le billet gagné.
+  useEffect(() => {
+    const stored = loadLastBooking();
+    if (stored && (stored as { status?: string }).status) {
+      restoreBooking(stored);
+      clearLastBooking();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const reloadMessages = () => {
     if (!currentUser?.id) return;
@@ -88,6 +100,26 @@ export const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ currentU
       setActiveTab('tickets');
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handlePayOnline = async (method: PaymentMethod, passengerName: string, passengerPhone: string, passengerEmail?: string) => {
+    if (!selectedTrip) return;
+    setIsOnlinePayment(true);
+    try {
+      const result = await initiatePaymentApi({
+        tripId: selectedTrip.id,
+        passengerName,
+        passengerPhone,
+        passengerEmail,
+        method,
+      });
+      // Redirection vers le guichet CinetPay (ou l'écran de retour en mode test).
+      window.location.assign(result.paymentUrl);
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Impossible de lancer le paiement.');
+      setIsOnlinePayment(false);
     }
   };
 
@@ -261,7 +293,9 @@ export const PassengerDashboard: React.FC<PassengerDashboardProps> = ({ currentU
           passengerName={`${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim()}
           onBack={() => setIsBookingOpen(false)}
           onConfirm={handleBookingConfirm}
+          onPayOnline={handlePayOnline}
           isLoading={isBookingLoading}
+          onlineLoading={isOnlinePayment}
         />
       )}
 

@@ -6,7 +6,7 @@ import { getStatsApi, sellTicketApi, getTicketsApi, type CompanyStats } from '..
 import type { TicketData } from '../../api/companyApi';
 import { updateCompanyProfileApi, getCompanyProfileApi } from '../../api/companyAuthApi';
 import { COMPANY_SESSION_KEY } from '../../api/sessionKeys';
-import { Building2, Bus, Ticket, BarChart3, Settings, User, Menu, X as XClose, TrendingUp } from 'lucide-react';
+import { Building2, Bus, Ticket, BarChart3, Settings, User, Menu, X as XClose, TrendingUp, Radio } from 'lucide-react';
 import type { UserSession } from '../../auth/passenger/types/auth';
 import { CompanyProfile } from '../profile/CompanyProfile';
 import { CompanySettings } from '../settings/CompanySettings';
@@ -14,6 +14,7 @@ import { OverviewTab } from './tabs/OverviewTab';
 import { TripsTabFull } from './tabs/TripsTabFull';
 import { TicketsTabFull } from './tabs/TicketsTabFull';
 import { StatsTabFull } from './tabs/StatsTabFull';
+import { TrackingTab } from './tabs/TrackingTab';
 import type { CompanyBranding, TicketHistoryItem } from './dashboardShared';
 import { normalizePaymentMethods } from './paymentMethods';
 
@@ -47,7 +48,7 @@ const mapTickets = (tickets: TicketData[], trips: TripData[]): TicketHistoryItem
   });
 };
 
-export type CompanyTab = 'overview' | 'trips' | 'tickets' | 'stats' | 'profile' | 'settings';
+export type CompanyTab = 'overview' | 'trips' | 'tickets' | 'tracking' | 'stats' | 'profile' | 'settings';
 export type ProfileSection = 'info' | 'branding' | 'drivers' | 'vehicles';
 export type TripFormPayload = { depart: string; arrivee: string; station: string; time: string; date: string; price: number; totalSeats: number; vehicleId: string; driverId: string; paymentMethods: string[]; stops: string[] };
 export type SellTicketPayload = { tripId: string; passengerName: string; passengerPhone: string; paymentMethod: string };
@@ -83,6 +84,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({ onLogout }) 
     { id: 'overview', label: 'Aperçu', icon: <BarChart3 size={18} /> },
     { id: 'trips', label: 'Trajets', icon: <Bus size={18} /> },
     { id: 'tickets', label: 'Guichet', icon: <Ticket size={18} /> },
+    { id: 'tracking', label: 'Suivi', icon: <Radio size={18} /> },
     { id: 'stats', label: 'Statistiques', icon: <TrendingUp size={18} /> },
     { id: 'profile', label: 'Profil', icon: <User size={18} /> },
     { id: 'settings', label: 'Paramètres', icon: <Settings size={18} /> },
@@ -147,6 +149,8 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({ onLogout }) 
       }
     };
     void fetchAll();
+    // Charge le profil compagnie au montage (setState initial voulu).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refreshProfile();
     return () => { mounted = false; };
   }, [refreshProfile]);
@@ -315,6 +319,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({ onLogout }) 
         {activeTab === 'overview' && <OverviewTab trips={trips} stats={stats} drivers={drivers} vehicles={vehicles} ticketHistory={ticketHistory} onNavigate={setActiveTab} onProfileSection={setProfileSection} primaryColor={primaryColor} />}
         {activeTab === 'trips' && <TripsTabFull trips={trips} drivers={drivers} vehicles={vehicles} initialTripId={focusedTripId} onAddTrip={handleAddTrip} branding={branding} />}
         {activeTab === 'tickets' && <TicketsTabFull trips={trips} ticketHistory={ticketHistory} onSellTicket={handleSellTicket} branding={branding} />}
+        {activeTab === 'tracking' && <TrackingTab trips={trips} />}
         {activeTab === 'stats' && <StatsTabFull stats={stats} ticketHistory={ticketHistory} trips={trips} drivers={drivers} vehicles={vehicles} primaryColor={primaryColor} branding={branding} />}
         {activeTab === 'profile' && <CompanyProfile initialSection={profileSection} currentUser={currentUser} onUserUpdate={setCurrentUser} drivers={drivers} vehicles={vehicles} trips={trips} onActiveMissionSelect={(trip) => { setFocusedTripId(trip.id); setActiveTab('trips'); }} onAddDriver={handleAddDriver} onAddVehicle={handleAddVehicle} onUpdateDriver={handleUpdateDriver} onUpdateVehicle={handleUpdateVehicle} onUpdateTrip={async (id, data) => { await updateTripApi(id, data); setTrips((previous) => previous.map((trip) => trip.id === id ? { ...trip, ...data } : trip)); }} onDeleteDriver={handleDeleteDriver} onDeleteVehicle={handleDeleteVehicle} branding={branding} onBrandingUpdate={handleBrandingUpdate} />}
         {activeTab === 'settings' && <CompanySettings currentUser={currentUser} onUserUpdate={setCurrentUser} onLogout={handleLogout} onBrandingUpdate={handleBrandingUpdate} />}

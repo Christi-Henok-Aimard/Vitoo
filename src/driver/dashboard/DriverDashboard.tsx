@@ -39,6 +39,8 @@ export const DriverDashboard: React.FC<{
   }, []);
 
   useEffect(() => {
+    // Charge les missions au montage (charsgement initial toléré ici).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refreshTrips();
     return () => undefined;
   }, [refreshTrips]);

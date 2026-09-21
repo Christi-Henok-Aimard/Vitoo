@@ -7,6 +7,7 @@ import { companyAuthRouter } from './auth/company/company.auth.routes.js';
 import { companyRouter } from './company/company.routes.js';
 import { adminRouter } from './admin/admin.routes.js';
 import { tripsRouter } from './passenger/trips.routes.js';
+import { paymentsRouter } from './passenger/payments.routes.js';
 
 import { driverAuthRouter } from './auth/driver/driver.auth.routes.js';
 import { driverRouter } from './driver/driver.routes.js';
@@ -48,6 +49,7 @@ app.use('/api/company/auth', companyAuthRouter);
 app.use('/api/company', companyRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/trips', tripsRouter);
+app.use('/api/payments', paymentsRouter);
 app.use('/api/driver/auth', driverAuthRouter);
 app.use('/api/driver', driverRouter);
 

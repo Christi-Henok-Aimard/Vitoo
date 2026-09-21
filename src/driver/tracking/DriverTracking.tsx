@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, CheckCircle2, Flag, MapPin, Navigation, Satellite } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Flag, MapPin, Navigation, Play, Satellite, Square } from 'lucide-react';
 import { getDriverTripByIdApi, updateDriverStatusApi, updateTripPositionApi, updateTripStatusApi, type TripData } from '../../api/driverApi';
+import { LiveMap } from '../../shared/maps/LiveMap';
+import { resolveCity } from '../../shared/maps/cities';
+import { useDemoPosition, useRoute } from '../../shared/maps/useRoute';
+import type { LatLng } from '../../shared/maps/geolib';
 
 interface LiveError { code: string; message: string }
 
@@ -11,6 +15,8 @@ export const DriverTracking: React.FC<{ tripId: string; onBack: () => void; onFi
   const [busy, setBusy] = useState(false);
   const [starting, setStarting] = useState(true);
   const [arrived, setArrived] = useState(false);
+  const [demoPlay, setDemoPlay] = useState(false);
+  const [liveActive, setLiveActive] = useState(false);
   const [arrivalStats, setArrivalStats] = useState<{ boarded: number; paid: number } | null>(null);
 
   const lastPushRef = useRef(0);
@@ -43,15 +49,26 @@ export const DriverTracking: React.FC<{ tripId: string; onBack: () => void; onFi
     void updateTripPositionApi(tripId, lat, lon).catch(() => undefined);
   }, [tripId]);
 
+  const fromPoint = resolveCity(trip?.depart);
+  const toPoint = resolveCity(trip?.arrivee);
+  const { route } = useRoute(
+    fromPoint && toPoint ? [fromPoint.lat, fromPoint.lon] : null,
+    fromPoint && toPoint ? [toPoint.lat, toPoint.lon] : null,
+  );
+
   useEffect(() => {
+    if (demoPlay) return;
+    // Réinitialise les erreurs GPS précédentes avant de relancer l'écoute.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLiveError(null);
     const timeout = window.setTimeout(() => {
       if (!('geolocation' in navigator)) {
-        setLiveError({ code: 'unsupported', message: 'La géolocalisation n\u2019est pas disponible sur ce navigateur.' });
+        setLiveError({ code: 'unsupported', message: 'La géolocalisation n’est pas disponible sur ce navigateur.' });
         return;
       }
       const watch = navigator.geolocation.watchPosition(
         (p) => {
+          setLiveActive(true);
           setPos({ lat: p.coords.latitude, lon: p.coords.longitude });
           pushPosition(p.coords.latitude, p.coords.longitude);
         },
@@ -61,7 +78,19 @@ export const DriverTracking: React.FC<{ tripId: string; onBack: () => void; onFi
       return () => navigator.geolocation.clearWatch(watch);
     }, 300);
     return () => window.clearTimeout(timeout);
-  }, [pushPosition, tripId]);
+  }, [pushPosition, tripId, demoPlay]);
+
+  const handleDemoTick = useCallback((position: LatLng) => {
+    setPos({ lat: position[0], lon: position[1] });
+    pushPosition(position[0], position[1]);
+  }, [pushPosition]);
+
+  useDemoPosition(demoPlay, 3, route, handleDemoTick);
+
+  const toggleDemo = () => {
+    if (demoPlay) { setDemoPlay(false); setLiveActive(true); }
+    else { setDemoPlay(true); }
+  };
 
   const finishWithConfirmation = async () => {
     setBusy(true);
@@ -71,7 +100,7 @@ export const DriverTracking: React.FC<{ tripId: string; onBack: () => void; onFi
       setArrived(true);
       onFinished();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Impossible de confirmer l\u2019arrivée.');
+      alert(err instanceof Error ? err.message : 'Impossible de confirmer l’arrivée.');
     } finally {
       setBusy(false);
     }
@@ -96,10 +125,6 @@ export const DriverTracking: React.FC<{ tripId: string; onBack: () => void; onFi
     );
   }
 
-  const bbox = pos
-    ? `${pos.lon - 0.012},${pos.lat - 0.008},${pos.lon + 0.012},${pos.lat + 0.008}`
-    : '-4.02,5.28,-4.00,5.34';
-
   return (
     <div className="fade-in">
       <button type="button" className="back-link" onClick={onBack}><ArrowLeft size={16} /> Retour à la mission</button>
@@ -110,27 +135,35 @@ export const DriverTracking: React.FC<{ tripId: string; onBack: () => void; onFi
         <span className="pill pill-green"><Navigation size={14} /> Trajet en cours</span>
       </div>
 
-      {liveError ? (
+      <div className="vitoo-tracking-toolbar" style={{ margin: '0.75rem 0 1rem' }}>
+        <button type="button" className={demoPlay ? 'active' : ''} onClick={toggleDemo}>
+          {demoPlay ? <><Square size={14} /> Désactiver la démo</> : <><Play size={14} /> Lecture démo du trajet</>}
+        </button>
+        {liveActive && !demoPlay ? (
+          <span className="vitoo-live-badge"><Satellite size={14} /> GPS réel actif</span>
+        ) : demoPlay ? (
+          <span className="vitoo-live-badge">Démo — le car avance sur l'itinéraire</span>
+        ) : null}
+      </div>
+
+      {liveError && !demoPlay ? (
         <div className="qr-error" style={{ marginTop: '0.75rem' }}>{liveError.message}</div>
       ) : (
-        <p className="boarding-hint"><Satellite size={14} /> Suivi actif — mise à jour toutes les 8 secondes.</p>
+        <p className="boarding-hint"><Satellite size={14} /> {demoPlay ? 'Mode démo — la position est envoyée au réseau à chaque étape.' : liveActive ? 'Suivi actif — mise à jour toutes les 8 secondes.' : 'En attente du signal GPS…'}</p>
       )}
 
-      {pos && (
-        <div className="live-map" style={{ margin: '1rem 0' }}>
-          <iframe
-            title="Position en direct"
-            width="100%"
-            height="320"
-            style={{ border: 0, borderRadius: '16px' }}
-            loading="lazy"
-            src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${pos.lat},${pos.lon}`}
-          />
-          <p style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.5rem', color: 'var(--vitoo-text-soft, #77869c)', fontSize: '0.78rem' }}>
-            <MapPin size={14} /> {pos.lat.toFixed(5)}, {pos.lon.toFixed(5)}
-          </p>
-        </div>
-      )}
+      <div className="live-map" style={{ margin: '1rem 0' }}>
+        <LiveMap
+          from={{ city: trip?.depart }}
+          to={{ city: trip?.arrivee }}
+          vehicle={pos ? { lat: pos.lat, lon: pos.lon, lastPositionAt: new Date().toISOString() } : null}
+          height={360}
+          precomputedRoute={route}
+        />
+        <p style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.5rem', color: 'var(--vitoo-text-soft, #77869c)', fontSize: '0.78rem' }}>
+          <MapPin size={14} /> {pos ? `${pos.lat.toFixed(5)}, ${pos.lon.toFixed(5)}` : 'Position en attente'}
+        </p>
+      </div>
 
       <div className="depart-card">
         <div>

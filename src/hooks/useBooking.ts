@@ -27,5 +27,10 @@ export const useBooking = () => {
     setError(null);
   };
 
-  return { booking, loading, error, confirmBooking, resetBooking };
+  const restoreBooking = (booking: Booking) => {
+    setBooking(booking);
+    setError(null);
+  };
+
+  return { booking, loading, error, confirmBooking, resetBooking, restoreBooking };
 };

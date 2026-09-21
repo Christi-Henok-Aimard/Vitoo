@@ -38,6 +38,8 @@ export const MissionDetail: React.FC<{
   }, [tripId, trip]);
 
   useEffect(() => {
+    // Chargement initial + rafraîchissement périodique de la mission.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void reload();
     const timer = window.setInterval(() => { void reload(); }, 8000);
     return () => window.clearInterval(timer);

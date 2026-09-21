@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { ArrowLeft, Check, CreditCard, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Check, CreditCard, ExternalLink, ShieldCheck } from 'lucide-react';
 import type { PaymentMethod } from '../../types/booking';
 import type { Trip } from '../../types/trip';
 import { formatPrice } from '../../shared/components/lib/format';
@@ -9,10 +9,14 @@ interface BookingFlowProps {
   passengerName: string;
   onBack: () => void;
   onConfirm: (method: PaymentMethod, passengerName: string, passengerPhone: string) => void;
+  onPayOnline?: (method: PaymentMethod, passengerName: string, passengerPhone: string, passengerEmail?: string) => Promise<void> | void;
   isLoading?: boolean;
+  onlineLoading?: boolean;
 }
 
-export const BookingFlow: React.FC<BookingFlowProps> = ({ trip, passengerName, onBack, onConfirm, isLoading = false }) => {
+const isOnlineMethod = (method: string): boolean => method.trim().toLowerCase() !== 'espèces';
+
+export const BookingFlow: React.FC<BookingFlowProps> = ({ trip, passengerName, onBack, onConfirm, onPayOnline, isLoading = false, onlineLoading = false }) => {
   const [step, setStep] = useState<'passenger' | 'payment'>('passenger');
   const [firstName, setFirstName] = useState(passengerName.split(' ')[0] || '');
   const [lastName, setLastName] = useState(passengerName.split(' ').slice(1).join(' ') || '');
@@ -20,6 +24,16 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ trip, passengerName, o
   const [email, setEmail] = useState('');
   const methods: PaymentMethod[] = trip.paymentMethods?.length ? trip.paymentMethods : ['Espèces'];
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(methods[0]);
+
+  const fullName = `${firstName} ${lastName}`.trim();
+  const online = isOnlineMethod(selectedMethod);
+  const handlePay = () => {
+    if (online) {
+      void onPayOnline?.(selectedMethod, fullName, phone, email || undefined);
+    } else {
+      onConfirm(selectedMethod, fullName, phone);
+    }
+  };
 
   return (
     <section className="booking-page">
@@ -35,7 +49,12 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ trip, passengerName, o
         </div>
       ) : (
         <div className="booking-layout">
-          <div className="booking-card"><span className="hero-eyebrow">Étape 2</span><h1>Choisissez votre paiement</h1><p>Le règlement s\'effectue à l\'embarquement. Ce choix figure sur votre billet.</p><div className="payment-list">{methods.map((method) => <button type="button" key={method} className={selectedMethod === method ? 'selected' : ''} onClick={() => setSelectedMethod(method)}><CreditCard /><span><b>{method}</b><small>Paiement à l\'embarquement</small></span>{selectedMethod === method && <Check />}</button>)}</div><button className="primary-action" disabled={isLoading} onClick={() => onConfirm(selectedMethod, `${firstName} ${lastName}`.trim(), phone)}><ShieldCheck />{isLoading ? 'Confirmation en cours...' : `Confirmer la réservation · ${formatPrice(trip.price)}`}</button><p className="text-xs text-center text-slate-400 mt-2">Vous réglez le chauffeur à bord. Votre e-billet sert de preuve de réservation.</p></div><BookingSummary trip={trip} />
+          <div className="booking-card"><span className="hero-eyebrow">Étape 2</span><h1>Choisissez votre paiement</h1><p>{online ? 'Vous serez redirigé vers le paiement sécurisé (CinetPay) : Wave, Orange Money, MTN MoMo, Moov ou carte bancaire.' : 'Le règlement s\'effectue à l\'embarquement. Ce choix figure sur votre billet.'}</p>
+            <div className="payment-list">{methods.map((method) => <button type="button" key={method} className={selectedMethod === method ? 'selected' : ''} onClick={() => setSelectedMethod(method)}><CreditCard /><span><b>{method}</b><small>{isOnlineMethod(method) ? 'Paiement en ligne sécurisé' : 'Paiement à l\'embarquement'}</small></span>{selectedMethod === method && <Check />}</button>)}</div>
+            <button className="primary-action" disabled={isLoading || onlineLoading} onClick={handlePay}>
+              {online ? (<><ExternalLink />{onlineLoading ? 'Redirection vers le paiement…' : `Payer en ligne · ${formatPrice(trip.price)}`}</>) : (<><ShieldCheck />{isLoading ? 'Confirmation en cours...' : `Confirmer la réservation · ${formatPrice(trip.price)}`}</>)}
+            </button>
+            <p className="text-xs text-center text-slate-400 mt-2">{online ? 'Paiement 100 % sécurisé. Votre e-billet est généré dès confirmation.' : 'Vous réglez le chauffeur à bord. Votre e-billet sert de preuve de réservation.'}</p></div><BookingSummary trip={trip} />
         </div>
       )}
     </section>
@@ -43,5 +62,3 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ trip, passengerName, o
 };
 
 const BookingSummary: React.FC<{ trip: Trip }> = ({ trip }) => <aside className="booking-summary"><span className="hero-eyebrow">Votre trajet</span><h2>{trip.depart} → {trip.arrivee}</h2><p>{trip.company} · Départ {trip.time}</p><div className="summary-line">Durée <b>{trip.duration || 'À confirmer'}</b></div><div className="summary-line">Tarif de base <b>{formatPrice(trip.price)}</b></div><div className="summary-line">Frais de service <b>Inclus</b></div><strong>{formatPrice(trip.price)}</strong></aside>;
-
-

@@ -1,7 +1,11 @@
-﻿import React, { useEffect, useState } from 'react';
+﻿import React, { useCallback, useEffect, useState } from 'react';
 import type { Trip } from '../../types/trip';
 import { fetchTripByIdApi } from '../../api/tripApi';
-import { MapPin, Phone, Share2, Navigation, Route, User } from 'lucide-react';
+import { MapPin, Phone, Play, Share2, Route, Satellite, Square, User } from 'lucide-react';
+import { LiveMap } from '../../shared/maps/LiveMap';
+import { resolveCity } from '../../shared/maps/cities';
+import { useDemoPosition, useRoute } from '../../shared/maps/useRoute';
+import type { LatLng } from '../../shared/maps/geolib';
 
 interface MapTrackingViewProps {
   trip: Trip;
@@ -9,11 +13,14 @@ interface MapTrackingViewProps {
 }
 
 // Suivi de course : affiche la position GPS réelle du car
-// (publiée par le chauffeur) tant qu'elle est disponible.
+// (publiée par le chauffeur) quand elle est disponible.
+// Pour la présentation : « Lecture démo » fait avancer le car
+// sur l'itinéraire comme sur Yango, même sans chauffeur en ligne.
 export const MapTrackingView: React.FC<MapTrackingViewProps> = ({ trip, onArrive }) => {
   const [liveTrip, setLiveTrip] = useState<Trip | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [shared, setShared] = useState(false);
+  const [demoPlay, setDemoPlay] = useState(false);
+  const [demoPos, setDemoPos] = useState<LatLng | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -21,10 +28,10 @@ export const MapTrackingView: React.FC<MapTrackingViewProps> = ({ trip, onArrive
       const fresh = await fetchTripByIdApi(trip.id).catch(() => null);
       if (!active || !fresh) return;
       setLiveTrip(fresh);
-      if (typeof fresh.latitude === 'number' && typeof fresh.longitude === 'number') {
-        setLastUpdated(new Date());
-      }
     };
+    // Réinitialise l'état en direct quand on change de trajet pour ne pas afficher les données du précédent.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLiveTrip(null);
     void refresh();
     const timer = window.setInterval(() => void refresh(), 8000);
     return () => {
@@ -33,35 +40,59 @@ export const MapTrackingView: React.FC<MapTrackingViewProps> = ({ trip, onArrive
     };
   }, [trip.id]);
 
+  const fromPoint = resolveCity(trip.depart);
+  const toPoint = resolveCity(trip.arrivee);
+  const { route } = useRoute(
+    fromPoint && toPoint ? [fromPoint.lat, fromPoint.lon] : null,
+    fromPoint && toPoint ? [toPoint.lat, toPoint.lon] : null,
+  );
+
+  const handleDemoTick = useCallback((position: LatLng) => {
+    setDemoPos(position);
+  }, []);
+
+  useDemoPosition(demoPlay, 3, route, handleDemoTick);
+
   const current = liveTrip ?? trip;
   const hasPosition = typeof current.latitude === 'number' && typeof current.longitude === 'number';
   const stops = current.stops && current.stops.length > 1 ? current.stops : [current.depart, current.arrivee];
 
+  const useDemo = demoPlay && demoPos !== null;
+  const vehicle = useDemo
+    ? { lat: demoPos[0], lon: demoPos[1], lastPositionAt: new Date().toISOString() }
+    : hasPosition
+      ? { lat: current.latitude, lon: current.longitude, lastPositionAt: current.lastPositionAt }
+      : null;
+
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <div className="tracking-map">
-        <div className="map-road map-road-one" /><div className="map-road map-road-two" /><div className="map-road map-road-three" />
-        <span className="map-city map-city-start">{trip.depart}</span><span className="map-city map-city-end">{trip.arrivee}</span>
-        <div className="map-route">
-          <span className="map-dot" />
-          {hasPosition && <span className="map-car"><Navigation /></span>}
-          <span className="map-dot" />
-        </div>
-        <div className="map-live">
-          {hasPosition ? (
-            <><MapPin /> Position GPS reçue · {current.latitude?.toFixed(5)}, {current.longitude?.toFixed(5)} · actualisée à {lastUpdated?.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) || '—'}</>
-          ) : (
-            <><MapPin /> En attente de la position GPS du car…</>
-          )}
-        </div>
-      </div>
+      <LiveMap
+        from={{ city: trip.depart }}
+        to={{ city: trip.arrivee }}
+        stops={stops.map((city) => ({ city }))}
+        vehicle={vehicle}
+        precomputedRoute={route}
+        height={300}
+      />
 
       <div className="p-4">
+        <div className="vitoo-tracking-toolbar" style={{ marginBottom: '0.6rem' }}>
+          <button type="button" className={demoPlay ? 'active' : ''} onClick={() => setDemoPlay((v) => !v)}>
+            {demoPlay ? <><Square size={14} /> Arrêter la démo</> : <><Play size={14} /> Lecture démo du trajet</>}
+          </button>
+          {useDemo ? (
+            <span className="vitoo-live-badge"><Play size={14} /> Démo — le car avance vers {trip.arrivee}</span>
+          ) : hasPosition ? (
+            <span className="vitoo-live-badge"><Satellite size={14} /> GPS réel du car actif</span>
+          ) : null}
+        </div>
         <p className="tracking-progress-label">
-          {hasPosition ? (
+          {useDemo ? (
+            <>Démo en direct · {trip.depart} → {trip.arrivee} · le car avance sur l'itinéraire</>
+          ) : hasPosition ? (
             <>Suivi en direct · {trip.depart} → {trip.arrivee}</>
           ) : (
-            <>Le chauffeur n'a pas encore activé la localisation. Le suivi se met à jour automatiquement.</>
+            <>Le chauffeur n'a pas encore activé la localisation. Lancez la démo pour voir le car bouger. Le suivi réel se met à jour automatiquement.</>
           )}
         </p>
 

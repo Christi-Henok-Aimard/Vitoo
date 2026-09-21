@@ -3,10 +3,12 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AuthContainer from './auth/passenger/AuthContainer';
 import CompanyAuthContainer from './auth/company/CompanyAuthContainer';
 import { PassengerDashboard } from './passenger/dashboard/PassengerDashboard';
+import { PaymentReturn } from './passenger/payment/PaymentReturn';
 import { CompanyDashboard } from './company/dashboard/CompanyDashboard';
 import { DriverDashboard } from './driver/dashboard/DriverDashboard';
 import { AdminDashboard } from './admin/AdminDashboard';
 import { DevLanding } from './dev/DevLanding';
+import { MapTest } from './dev/MapTest';
 import { SettingsProvider } from './settings/SettingsContext';
 import type { UserSession } from './auth/passenger/types/auth';
 import {
@@ -149,7 +151,6 @@ function App() {
       window.removeEventListener('vitoo-session-stored', handleSessionStored);
       window.removeEventListener('storage', handleStorage);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleLoginSuccess = (user: UserSession | { driver: Record<string, unknown>; token: string }) => {
@@ -212,8 +213,10 @@ function App() {
             )
           } />
           <Route path="/dev" element={<DevLanding />} />
+          <Route path="/maptest" element={<MapTest />} />
 
           {/* Espace Passager */}
+          <Route path="/passenger/payment-return" element={<PaymentReturn />} />
           <Route path="/passenger/*" element={
             passengerSession && passengerSession.role === 'passenger' ? (
               <PassengerDashboard

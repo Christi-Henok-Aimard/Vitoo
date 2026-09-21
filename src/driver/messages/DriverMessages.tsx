@@ -22,6 +22,8 @@ export const DriverMessages: React.FC<{ tripContext?: string }> = ({ tripContext
   }, []);
 
   useEffect(() => {
+    // Chargement initial + rafraîchissement périodique des messages.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void reload();
     const timer = window.setInterval(() => { void reload(); }, 10000);
     return () => window.clearInterval(timer);

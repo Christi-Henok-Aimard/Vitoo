@@ -29,9 +29,11 @@ export const ScanScreen: React.FC<{ tripId: string; onBack: () => void }> = ({ t
     }
   }, [tripId]);
 
-  const scannedRef = useRef<TicketData[]>([]);
-  const handleCodeRef = useRef(handleCode);
+const scannedRef = useRef<TicketData[]>([]);
+const handleCodeRef = useRef(handleCode);
+useEffect(() => {
   handleCodeRef.current = handleCode;
+});
 
   const confirmBoarding = async () => {
     if (!result?.ticket) return;
@@ -83,6 +85,8 @@ export const ScanScreen: React.FC<{ tripId: string; onBack: () => void }> = ({ t
 
   useEffect(() => {
     if (mode === 'camera') {
+      // Démarre la caméra : setState dans startCamera est voulu au montage.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       void startCamera();
     }
     return () => {
