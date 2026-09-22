@@ -2662,3 +2662,104 @@ button.day-detail-item:hover { color: #2563eb; }
 }
 .payment-return-card h1 { font-size: 1.35rem; color: var(--vitoo-ink, #10233f); margin: 0; }
 .payment-return-card p { color: var(--vitoo-text-soft, #77869c); margin: 0; }
+
+/* =========================================================================
+   MODE SOMBRE — polish type DeepSeek/Claude
+   Bloc ajouté en dernier = priorité maximale. En sombre, AUCUN survol ne
+   doit produire un fond blanc/clair : texte toujours lisible.
+   ========================================================================= */
+.theme-dark {
+  color-scheme: dark;
+  --vitoo-bg: #0b1220;
+  --vitoo-hover: #1b2740;
+  --vitoo-hover-primary: color-mix(in srgb, #1d5df5 18%, #1b2740);
+  --vitoo-danger-hover: #451016;
+}
+
+/* Fond de page uniforme et neutre pour tous les espaces */
+.theme-dark body,
+.theme-dark .app-shell,
+.theme-dark .company-shell,
+.theme-dark .driver-shell,
+.theme-dark .admin-shell { background-color: #0b1220; }
+
+/* Texte sélectionné lisible */
+.theme-dark ::selection { background: rgba(87, 155, 252, 0.45); color: #fff; }
+
+/* Saisie : champs sombres + contrôles natifs (curseur, scrollbar, autofill) */
+.theme-dark input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+.theme-dark select,
+.theme-dark textarea {
+  background: var(--vitoo-surface-2);
+  border-color: var(--vitoo-border);
+  color: var(--vitoo-text);
+}
+.theme-dark input::placeholder,
+.theme-dark textarea::placeholder { color: #6b7d9e; }
+
+/* Tous les survols cliquables : fond sombre systématiquement, pas de blanc */
+.theme-dark .nav-btn:hover,
+.theme-dark .section-tab:hover,
+.theme-dark .mobile-nav-btn:hover,
+.theme-dark .icon-btn:hover,
+.theme-dark .icon-action:hover,
+.theme-dark .small-action:hover,
+.theme-dark .secondary-action:hover,
+.theme-dark .setting-row:hover,
+.theme-dark .data-table tbody tr:hover,
+.theme-dark .admin-table tbody tr:hover,
+.theme-dark .admin-user-row:hover,
+.theme-dark .admin-modal-close:hover,
+.theme-dark .mini-list-item.clickable:hover,
+.theme-dark .breakdown-item-button:hover,
+.theme-dark .searchable-dropdown-item:hover,
+.theme-dark .searchable-dropdown-clear:hover,
+.theme-dark .attachment-upload:hover,
+.theme-dark .upload-pin:hover,
+.theme-dark .reservation-list button:hover,
+.theme-dark .notification-list article:hover,
+.theme-dark .setting-option:hover,
+.theme-dark .profile-section-tab:hover {
+  background: var(--vitoo-hover) !important;
+  color: var(--vitoo-text) !important;
+  border-color: var(--vitoo-border) !important;
+}
+
+/* Boutons danger : rouge sombre au survol, texte lisible */
+.theme-dark .logout-btn:hover,
+.theme-dark .admin-btn-danger:hover,
+.theme-dark .action-btn.danger:hover {
+  background: var(--vitoo-danger-hover) !important;
+  color: #fda4af !important;
+  border-color: #7f1d1d !important;
+}
+
+/* Survols d'accent : teinte de marque assombrie, jamais blanche */
+.theme-dark .primary-action:hover:not(:disabled),
+.theme-dark .btn-omio:hover { background: #1748c9; }
+.theme-dark .company-shell .nav-btn:hover,
+.theme-dark .company-shell .section-tab:hover { background: var(--vitoo-hover-primary) !important; color: #f1f5fb !important; }
+.theme-dark .nav-btn.active,
+.theme-dark .mobile-nav-btn.active { background: color-mix(in srgb, #1d5df5 34%, #161f33); color: #cfe0ff; }
+
+/* Cartes cliquables : aucun fond ne devient blanc, seule la bordure s'éclaire */
+.theme-dark .trip-card:hover,
+.theme-dark .trip-card-driver:hover,
+.theme-dark .ticket-preview:hover,
+.theme-dark .stat-card.clickable:hover,
+.theme-dark .managed-trip-item:hover,
+.theme-dark .payment-passenger-item:hover,
+.theme-dark .mission-item:hover {
+  background: var(--vitoo-surface-2) !important;
+  border-color: color-mix(in srgb, #1d5df5 45%, var(--vitoo-border)) !important;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+}
+
+/* Listes déroulantes de recherche */
+.theme-dark .searchable-dropdown-menu { background: var(--vitoo-surface-2); border-color: var(--vitoo-border); }
+.theme-dark .searchable-dropdown-trigger { background: var(--vitoo-surface-2); border-color: var(--vitoo-border); color: var(--vitoo-text); }
+
+/* Contrôles Leaflet en cohérence avec le sombre */
+.theme-dark .leaflet-control-zoom a { background: #16233c !important; color: #e8edf7 !important; border-color: var(--vitoo-border) !important; }
+.theme-dark .leaflet-control-zoom a:hover { background: #1d2940 !important; }
+.theme-dark .vitoo-map-chip { background: rgba(18, 27, 48, 0.92); color: #e8edf7; }

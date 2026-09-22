@@ -97,6 +97,12 @@ export const updateMeCompanyController = async (request: Request, response: Resp
     secondaryColor: typeof body.secondaryColor === 'string' ? body.secondaryColor : undefined,
     paymentMethods: Array.isArray(body.paymentMethods) ? body.paymentMethods.filter((value): value is string => typeof value === 'string') : undefined,
   };
-  const user = await updateCompanyProfile(request.authUser.id, changes);
-  return response.json({ user });
+  try {
+    const user = await updateCompanyProfile(request.authUser.id, changes);
+    return response.json({ user });
+  } catch (cause) {
+    return response.status(409).json({
+      message: cause instanceof Error ? cause.message : 'Mise à jour du profil impossible.',
+    });
+  }
 };

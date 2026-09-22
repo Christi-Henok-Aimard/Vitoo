@@ -304,7 +304,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({ onLogout }) 
         </div>
 
         {mobileMenuOpen && (
-          <nav className="mobile-nav">
+          <nav className={`mobile-nav ${mobileMenuOpen ? 'open' : ''}`}>
             {tabs.map((tab) => (
               <button key={tab.id} className={`mobile-nav-btn ${activeTab === tab.id ? 'active' : ''}`} onClick={() => { setActiveTab(tab.id); setMobileMenuOpen(false); }}>
                 {tab.icon}

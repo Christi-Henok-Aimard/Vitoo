@@ -113,9 +113,15 @@ export const updateMeController = async (
 ) => {
   const error = validateUpdateProfileInput(request.body);
   if (error) return response.status(400).json({ message: error });
-  return response.json({
-    user: await updateUser(request.authUser!.id, request.body),
-  });
+  try {
+    return response.json({
+      user: await updateUser(request.authUser!.id, request.body),
+    });
+  } catch (cause) {
+    return response.status(409).json({
+      message: cause instanceof Error ? cause.message : 'Mise à jour du profil impossible.',
+    });
+  }
 };
 
 export const updatePasswordController = async (

@@ -11,6 +11,7 @@ import { paymentsRouter } from './passenger/payments.routes.js';
 
 import { driverAuthRouter } from './auth/driver/driver.auth.routes.js';
 import { driverRouter } from './driver/driver.routes.js';
+import { prisma } from './lib/db.js';
 
 export const app = express();
 
@@ -52,6 +53,39 @@ app.use('/api/trips', tripsRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/driver/auth', driverAuthRouter);
 app.use('/api/driver', driverRouter);
+
+// Réinitialisation complète de la base (outil ops) : uniquement accessible si la
+// variable d'environnement RESET_TOKEN est définie, et à condition que le token
+// passé en query (?token=...) corresponde. Inerte autrement (répond 403).
+const RESET_TABLES = [
+  'message',
+  'rating',
+  'incident',
+  'ticket',
+  'booking',
+  'payment',
+  'trip',
+  'vehicle',
+  'driver',
+  'user',
+  'adminAuditLog',
+] as const;
+
+type WipeModel = { deleteMany(args?: never): Promise<{ count: number }> };
+
+app.get('/api/dev/reset', async (request, response) => {
+  const expected = process.env.RESET_TOKEN;
+  if (!expected || request.query.token !== expected) {
+    return response.status(403).json({ message: 'Accès refusé.' });
+  }
+  const counts: Record<string, number> = {};
+  const prismaAny = prisma as unknown as Record<string, WipeModel>;
+  for (const name of RESET_TABLES) {
+    const result = await prismaAny[name].deleteMany();
+    counts[name] = result.count;
+  }
+  return response.json({ ok: true, counts });
+});
 
 // Toute route /api non trouvée → 404 JSON (et non le fallback SPA).
 app.use('/api', (_request, response) => response.status(404).json({ message: 'Route API introuvable.' }));

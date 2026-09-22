@@ -285,6 +285,27 @@ export const updateUser = async (userId: string, changes: Partial<Pick<AuthUser,
     }
   }
 
+  if (typeof updateData.phone === 'string') updateData.phone = normalizePhone(updateData.phone);
+  if (typeof updateData.email === 'string') updateData.email = updateData.email.trim().toLowerCase();
+
+  if (updateData.phone || updateData.email) {
+    const conflicted = await prisma.user.findFirst({
+      where: {
+        NOT: { id: userId },
+        OR: [
+          ...(updateData.phone ? [{ phone: updateData.phone as string }] : []),
+          ...(updateData.email ? [{ email: updateData.email as string }] : []),
+        ],
+      },
+    });
+    if (conflicted) {
+      if (updateData.phone && conflicted.phone === updateData.phone) {
+        throw new Error('Ce numéro de téléphone est déjà utilisé par un autre compte.');
+      }
+      throw new Error('Cette adresse email est déjà utilisée par un autre compte.');
+    }
+  }
+
   const user = await prisma.user.update({
     where: { id: userId },
     data: updateData,

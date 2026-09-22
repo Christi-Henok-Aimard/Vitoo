@@ -24,6 +24,18 @@ export const updateCompanyProfile = async (userId: string, changes: Partial<Pick
     }
   }
 
+  if (typeof updateData.phone === 'string') updateData.phone = normalizePhone(updateData.phone);
+
+  if (updateData.phone) {
+    const conflicted = await prisma.user.findFirst({
+      where: {
+        NOT: { id: userId },
+        phone: updateData.phone as string,
+      },
+    });
+    if (conflicted) throw new Error('Ce numéro de téléphone est déjà utilisé par un autre compte.');
+  }
+
   const user = await prisma.user.update({
     where: { id: userId },
     data: updateData,
