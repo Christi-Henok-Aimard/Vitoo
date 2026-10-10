@@ -436,6 +436,321 @@ body {
 .theme-dark .section-heading h2 { color: #f1f5fb; }
 .theme-dark .section-heading p { color: var(--vitoo-text-soft); }
 .theme-dark .result-filters { color: var(--vitoo-text-soft); }
+
+/* Navigation remains reachable on small screens and follows the map on desktop. */
+.navigation-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: .8rem;
+  align-items: center;
+  padding: .9rem 1rem;
+  color: var(--vitoo-text, #10233f);
+  background: var(--vitoo-surface, #fff);
+  border: 1px solid var(--vitoo-border, #dce3ee);
+  border-radius: 0 0 16px 16px;
+}
+.navigation-main, .navigation-step, .navigation-actions { display: flex; align-items: center; gap: .65rem; }
+.navigation-icon { display: grid; place-items: center; width: 38px; height: 38px; color: #fff; background: #1d5df5; border-radius: 12px; }
+.navigation-copy { display: grid; gap: .15rem; min-width: 0; }
+.navigation-kicker, .navigation-copy small, .navigation-stats small, .navigation-step small { color: var(--vitoo-text-soft, #77869c); font-size: .7rem; }
+.navigation-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .88rem; }
+.navigation-stats { display: flex; gap: 1rem; }
+.navigation-stats span { display: grid; gap: .1rem; text-align: right; }
+.navigation-stats b { font-size: .9rem; }
+.navigation-action { display: grid; place-items: center; width: 34px; height: 34px; color: var(--vitoo-text, #10233f); background: var(--vitoo-surface-2, #f5f7fb); border: 1px solid var(--vitoo-border, #dce3ee); border-radius: 10px; cursor: pointer; }
+.navigation-steps { grid-column: 1 / -1; display: flex; gap: .5rem; overflow-x: auto; padding-top: .65rem; border-top: 1px solid var(--vitoo-border, #dce3ee); }
+.navigation-step { min-width: 170px; align-items: flex-start; color: var(--vitoo-text-soft, #77869c); }
+.navigation-step > span { display: grid; place-items: center; width: 22px; height: 22px; color: #fff; background: #94a3b8; border-radius: 50%; font-size: .7rem; }
+.navigation-step.active { color: var(--vitoo-text, #10233f); }
+.navigation-step.active > span { background: #1d5df5; }
+.navigation-step div { display: grid; gap: .1rem; }
+.scan-status-overlay { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: .5rem; color: #fff; background: rgba(15, 23, 42, .72); border-radius: 14px; }
+.qr-scanner { position: relative; }
+.theme-dark .navigation-panel { color: var(--vitoo-text); }
+.theme-dark .navigation-action { color: var(--vitoo-text); }
+.theme-dark .bg-white,
+.theme-dark [class*="bg-white"] { background-color: var(--vitoo-surface) !important; }
+.theme-dark [class*="text-slate-900"],
+.theme-dark [class*="text-slate-800"],
+.theme-dark [class*="text-slate-700"] { color: var(--vitoo-text) !important; }
+.theme-dark [class*="text-slate-600"],
+.theme-dark [class*="text-slate-500"],
+.theme-dark [class*="text-slate-400"] { color: var(--vitoo-text-soft) !important; }
+.theme-dark [class*="border-slate-"] { border-color: var(--vitoo-border) !important; }
+.theme-dark .mapboxgl-popup-content { color: var(--vitoo-text); background: var(--vitoo-surface); }
+.theme-dark .mapboxgl-popup-tip { border-top-color: var(--vitoo-surface); border-bottom-color: var(--vitoo-surface); }
+
+@media (max-width: 640px) {
+  .navigation-panel { position: relative; grid-template-columns: minmax(0, 1fr) auto; gap: .65rem; padding: .8rem; border-radius: 16px; }
+  .navigation-stats { grid-column: 1 / -1; justify-content: space-between; padding-top: .55rem; border-top: 1px solid var(--vitoo-border, #dce3ee); }
+  .navigation-stats span { text-align: left; }
+  .navigation-actions { position: absolute; top: .8rem; right: .8rem; }
+  .navigation-copy { padding-right: 4.5rem; }
+  .navigation-copy strong { white-space: normal; line-height: 1.25; }
+  .navigation-steps { margin: 0 -.8rem -.8rem; padding: .65rem .8rem .8rem; }
+  .navigation-step { min-width: 145px; }
+}
+
+@media (max-width: 768px) {
+  .page-heading h1 { font-size: clamp(1.35rem, 5vw, 2rem); overflow-wrap: anywhere; }
+  .page-heading p { font-size: .88rem; }
+  .live-map, .map-container, .map-wrapper { width: 100%; max-width: 100%; overflow: hidden; }
+  .company-stats-chips { margin-bottom: .8rem !important; }
+  .trip-card-list > button { min-width: 0; flex-wrap: wrap; }
+  .trip-card-list > button > div:nth-child(2) { min-width: min(180px, 65vw); }
+  .trip-card-list > button > .pill,
+  .trip-card-list > button > span:last-child { margin-left: 2.8rem; }
+  .vitoo-tracking-toolbar { flex-wrap: wrap; }
+  .vitoo-tracking-toolbar button { max-width: 100%; }
+  .data-table, table { display: block; max-width: 100%; overflow-x: auto; white-space: nowrap; }
+  .modal-content, .dialog-card, .auth-card { width: calc(100vw - 1.25rem); max-width: calc(100vw - 1.25rem); }
+  input, select, textarea, button { max-width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .app-header-inner {
+    width: calc(100% - 1rem);
+    min-height: 58px;
+    gap: .45rem;
+  }
+  .app-header-inner > div:last-child {
+    min-width: 0;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    gap: .25rem !important;
+  }
+  .app-header .brand-lockup {
+    flex: 0 0 auto;
+    gap: .35rem;
+  }
+  .app-header .brand-mark {
+    width: 28px;
+    height: 28px;
+    font-size: .78rem;
+  }
+  .app-header .brand-word {
+    font-size: .8rem;
+    letter-spacing: .1em;
+  }
+  .top-nav {
+    min-width: 0;
+    flex: 1 1 auto;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .top-nav::-webkit-scrollbar { display: none; }
+  .top-nav button,
+  .company-menu > button {
+    padding: .45rem .35rem;
+    font-size: .64rem;
+  }
+  .company-menu > button small { display: none; }
+  .company-menu > button svg { width: 10px; }
+  .account-link {
+    padding: .25rem;
+  }
+  .account-link strong,
+  .account-link svg,
+  .notification-link,
+  .app-header-inner > div:last-child > button:last-child {
+    display: none;
+  }
+  .account-avatar {
+    width: 26px;
+    height: 26px;
+    font-size: .7rem;
+  }
+  .app-content {
+    width: calc(100% - 1rem);
+    padding-top: 1rem;
+  }
+  .hero-panel {
+    padding: 1.15rem;
+    border-radius: 16px;
+  }
+  .hero-panel h1 {
+    margin-top: .65rem;
+    font-size: clamp(1.7rem, 9vw, 2.35rem);
+  }
+  .hero-panel > p {
+    font-size: .82rem;
+    line-height: 1.45;
+  }
+  .search-panel {
+    margin-top: 1rem;
+    padding: .55rem;
+    border-radius: 12px;
+  }
+  .search-panel form > div:first-of-type {
+    grid-template-columns: 1fr;
+    gap: .45rem;
+  }
+  .search-panel form > div > div {
+    min-height: 42px;
+    padding: .5rem .65rem;
+    font-size: .75rem;
+  }
+  .search-panel form input,
+  .search-panel form select {
+    min-width: 0;
+    font-size: .75rem;
+  }
+  .search-panel form > button {
+    width: 100%;
+    min-height: 42px;
+    font-size: .75rem;
+  }
+  .section-heading {
+    display: block;
+    margin-top: 1.25rem;
+  }
+  .section-heading h2 { font-size: 1.05rem; }
+  .section-heading p { font-size: .72rem; }
+  .result-filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .4rem;
+    margin-top: .7rem;
+  }
+  .result-filters span { grid-column: 1 / -1; }
+  .result-filters select {
+    width: 100%;
+    min-width: 0;
+    padding: .48rem .45rem;
+    font-size: .68rem;
+  }
+}
+
+/* Shared small-screen layout for passenger, company and driver workspaces. */
+@media (max-width: 640px) {
+  .company-header-inner,
+  .driver-header-inner,
+  .company-content,
+  .driver-content {
+    width: calc(100% - 1rem);
+    max-width: none;
+  }
+  .company-header-inner,
+  .driver-header-inner {
+    min-height: 58px;
+    gap: .45rem;
+  }
+  .company-brand,
+  .driver-brand {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .company-brand span,
+  .driver-name {
+    max-width: 42vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .company-nav,
+  .driver-nav {
+    display: flex;
+    min-width: 0;
+    max-width: 58vw;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .company-nav::-webkit-scrollbar,
+  .driver-nav::-webkit-scrollbar { display: none; }
+  .company-nav .nav-btn,
+  .driver-nav .nav-btn {
+    flex: 0 0 auto;
+    padding: .5rem .55rem;
+    font-size: .68rem;
+    white-space: nowrap;
+  }
+  .company-header-actions,
+  .driver-header-actions {
+    flex: 0 0 auto;
+  }
+  .company-header-actions .logout-btn,
+  .driver-header-actions .logout-btn {
+    display: none;
+  }
+  .mobile-menu-btn {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+  }
+  .company-content,
+  .driver-content {
+    padding: 1rem 0 5.5rem;
+  }
+  .company-content > *,
+  .driver-content > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .company-content .page-heading,
+  .driver-content .page-heading {
+    margin-bottom: 1rem;
+  }
+  .company-content .page-heading h1,
+  .driver-content .page-heading h1 {
+    font-size: clamp(1.35rem, 7vw, 2rem);
+    overflow-wrap: anywhere;
+  }
+  .company-content .stats-grid,
+  .company-content .stats-summary-grid,
+  .driver-content .stats-grid,
+  .driver-content .stats-summary-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: .5rem;
+  }
+  .company-content .form-grid,
+  .driver-content .form-grid,
+  .company-content .two-column,
+  .driver-content .two-column {
+    grid-template-columns: 1fr;
+  }
+  .company-content .card,
+  .driver-content .card,
+  .company-content .form-card,
+  .driver-content .form-card,
+  .company-content .panel,
+  .driver-content .panel {
+    padding: .8rem;
+    border-radius: 14px;
+  }
+  .company-content .table-wrap,
+  .driver-content .table-wrap,
+  .company-content .table-container,
+  .driver-content .table-container {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .company-content table,
+  .driver-content table {
+    min-width: 620px;
+  }
+  .company-content .action-row,
+  .driver-content .action-row,
+  .company-content .toolbar,
+  .driver-content .toolbar {
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+  .company-content .action-row > *,
+  .driver-content .action-row > *,
+  .company-content .toolbar > *,
+  .driver-content .toolbar > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .mobile-nav {
+    max-height: calc(100vh - 58px);
+    overflow-y: auto;
+  }
+}
 .theme-dark .result-filters select { background: var(--vitoo-surface-2); color: var(--vitoo-text); border-color: var(--vitoo-border); }
 
 /* 3) Cartes trajet + page-heading */
