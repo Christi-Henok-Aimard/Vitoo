@@ -3078,3 +3078,93 @@ button.day-detail-item:hover { color: #2563eb; }
 .theme-dark .leaflet-control-zoom a { background: #16233c !important; color: #e8edf7 !important; border-color: var(--vitoo-border) !important; }
 .theme-dark .leaflet-control-zoom a:hover { background: #1d2940 !important; }
 .theme-dark .vitoo-map-chip { background: rgba(18, 27, 48, 0.92); color: #e8edf7; }
+
+/* Final mobile overrides: keep workspace headers usable after all desktop rules. */
+@media (max-width: 640px) {
+  .company-header-inner,
+  .driver-header-inner {
+    width: calc(100% - 1rem);
+    max-width: none;
+    min-height: 58px;
+    padding: .55rem 0;
+    gap: .45rem;
+  }
+  .company-header-inner .company-nav,
+  .driver-header-inner .driver-nav {
+    display: none;
+  }
+  .company-header-inner .company-header-actions,
+  .driver-header-inner .driver-header-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+  }
+  .company-header-inner .logout-btn,
+  .driver-header-inner .logout-btn {
+    display: none;
+  }
+  .company-header-inner .mobile-menu-btn,
+  .driver-header-inner .mobile-menu-btn {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+  }
+  .company-brand,
+  .driver-brand {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .company-name,
+  .driver-name {
+    display: block;
+    max-width: 58vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .company-content,
+  .driver-content {
+    width: calc(100% - 1rem);
+    max-width: none;
+    padding: 1rem 0 5.5rem;
+    overflow-x: hidden;
+  }
+  .company-content img,
+  .driver-content img,
+  .company-content video,
+  .driver-content video,
+  .company-content canvas,
+  .driver-content canvas {
+    max-width: 100%;
+  }
+  .company-content .page-heading h1,
+  .driver-content .page-heading h1 {
+    font-size: clamp(1.35rem, 7vw, 2rem);
+    overflow-wrap: anywhere;
+  }
+  .company-content .stats-grid,
+  .company-content .stats-summary-grid,
+  .driver-content .stats-grid,
+  .driver-content .stats-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+  }
+  .company-content .form-grid,
+  .driver-content .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .company-content table,
+  .driver-content table {
+    min-width: 620px;
+  }
+  .company-content .table-wrap,
+  .driver-content .table-wrap,
+  .company-content .table-container,
+  .driver-content .table-container {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
